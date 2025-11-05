@@ -105,7 +105,7 @@ const EmailVerificationModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-xl bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fadeIn">
+    <div className="fixed inset-0 backdrop-blur-xl ackdrop-blur-xl bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fadeIn">
       <div className="bg-white bg-opacity-95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white border-opacity-20 max-w-md w-full transform transition-all duration-300 hover:shadow-3xl">
         {/* Header */}
         <div className="relative p-6 rounded-t-2xl overflow-hidden">
@@ -120,7 +120,7 @@ const EmailVerificationModal = ({
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <div className="p-3 bg-white bg-opacity-20 rounded-2xl backdrop-blur-sm border border-white border-opacity-30 shadow-lg">
-                  <Mail className="h-7 w-7 text-white drop-shadow-sm" />
+                  <Mail className="h-7 w-7 text-black drop-shadow-sm" />
                 </div>
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#52DE97] rounded-full animate-pulse"></div>
               </div>
