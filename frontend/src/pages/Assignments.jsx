@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { assignmentsAPI } from "../services/api";
+import { assignmentsAPI, billingAPI } from "../services/api";
 // Force rebuild to fix Upload import issue
 import {
   Upload,
@@ -21,10 +21,21 @@ const Assignments = () => {
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [error, setError] = useState("");
+  const [usageStatus, setUsageStatus] = useState(null);
 
   useEffect(() => {
     loadAssignments();
+    loadUsageStatus();
   }, []);
+
+  const loadUsageStatus = async () => {
+    try {
+      const response = await billingAPI.getStatus();
+      setUsageStatus(response.data);
+    } catch (error) {
+      console.error("Failed to load usage status:", error);
+    }
+  };
 
   const loadAssignments = async () => {
     try {
@@ -45,12 +56,19 @@ const Assignments = () => {
     try {
       await assignmentsAPI.upload(formData);
 
-      // Close modal and reload assignments
+      // Close modal and reload data
       setShowUploadModal(false);
       loadAssignments();
+      loadUsageStatus(); // Reload usage status to reflect updated counts
     } catch (error) {
       console.error("Upload failed:", error);
-      setError(error.response?.data?.error || "Upload failed");
+      
+      // Handle usage limit exceeded error
+      if (error.response?.status === 403 && error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        setError(error.response?.data?.error || "Upload failed");
+      }
     } finally {
       setUploading(false);
     }
@@ -68,6 +86,50 @@ const Assignments = () => {
       console.error("Delete failed:", error);
       setError("Failed to delete assignment");
     }
+  };
+
+  const canUpload = () => {
+    if (!usageStatus) return true; // Allow if status not loaded yet
+    
+    if (!usageStatus.hasSubscription) {
+      // Free user - check lifetime usage
+      const lifetimeUsage = usageStatus.usage?.lifetimeUsage || 0;
+      return lifetimeUsage < 2;
+    } else if (usageStatus.subscription?.isActive) {
+      // Premium user - check monthly usage
+      const monthlyUsage = usageStatus.usage?.monthlyUsage || 0;
+      const monthlyLimit = usageStatus.subscription.checks_limit;
+      return monthlyLimit === -1 || monthlyUsage < monthlyLimit;
+    }
+    
+    return false;
+  };
+
+  const getUploadBlockMessage = () => {
+    if (!usageStatus) return "";
+    
+    if (!usageStatus.hasSubscription) {
+      const lifetimeUsage = usageStatus.usage?.lifetimeUsage || 0;
+      if (lifetimeUsage >= 2) {
+        return "You have reached your free limit of 2 scans. Please upgrade to continue.";
+      }
+    } else if (usageStatus.subscription?.isActive) {
+      const monthlyUsage = usageStatus.usage?.monthlyUsage || 0;
+      const monthlyLimit = usageStatus.subscription.checks_limit;
+      if (monthlyLimit !== -1 && monthlyUsage >= monthlyLimit) {
+        return `You have reached your monthly limit of ${monthlyLimit} scans. Your plan will reset next month.`;
+      }
+    }
+    
+    return "";
+  };
+
+  const handleUploadClick = () => {
+    if (!canUpload()) {
+      setError(getUploadBlockMessage());
+      return;
+    }
+    setShowUploadModal(true);
   };
 
   const getStatusIcon = (status) => {
@@ -135,8 +197,14 @@ const Assignments = () => {
             </div>
           </div>
           <button
-            onClick={() => setShowUploadModal(true)}
-            className="inline-flex items-center bg-white bg-opacity-90 hover:bg-opacity-100 backdrop-blur-sm border border-white border-opacity-50 text-[#2D4B7C] hover:text-[#1A365D] font-semibold py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+            onClick={handleUploadClick}
+            disabled={!canUpload()}
+            className={cn(
+              "inline-flex items-center font-semibold py-4 px-6 rounded-2xl shadow-lg transition-all duration-300",
+              canUpload()
+                ? "bg-white bg-opacity-90 hover:bg-opacity-100 backdrop-blur-sm border border-white border-opacity-50 text-[#2D4B7C] hover:text-[#1A365D] hover:shadow-xl hover:scale-105"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
+            )}
           >
             <Plus className="h-5 w-5 mr-3" />
             Upload Assignment
@@ -170,8 +238,14 @@ const Assignments = () => {
           </p>
           <div className="mt-8">
             <button
-              onClick={() => setShowUploadModal(true)}
-              className="inline-flex items-center bg-gradient-to-r from-[#3282B8] to-[#52DE97] text-white font-semibold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              onClick={handleUploadClick}
+              disabled={!canUpload()}
+              className={cn(
+                "inline-flex items-center font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all duration-300",
+                canUpload()
+                  ? "bg-gradient-to-r from-[#3282B8] to-[#52DE97] text-white hover:shadow-xl hover:scale-105"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
+              )}
             >
               <Plus className="h-5 w-5 mr-3" />
               Upload Your First Assignment

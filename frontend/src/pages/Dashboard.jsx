@@ -54,13 +54,11 @@ const Dashboard = () => {
         const billingData = subscriptionRes.value.data;
         setSubscription(billingData.subscription);
 
-        // Update stats with usage data
-        if (billingData.usage) {
-          setStats((prev) => ({
-            ...prev,
-            usageData: billingData.usage,
-          }));
-        }
+        // Update stats with usage data from billing API
+        setStats((prev) => ({
+          ...prev,
+          usageData: billingData.usage,
+        }));
       }
 
       if (assignmentsRes.status === "fulfilled") {
@@ -249,7 +247,7 @@ const Dashboard = () => {
               </p>
               <p className="text-sm text-gray-600 mt-1">
                 {subscription.isActive
-                  ? `${subscription.checks_used}/${
+                  ? `${stats.usageData?.monthlyUsage || 0}/${
                       subscription.checks_limit === -1
                         ? "∞"
                         : subscription.checks_limit
@@ -265,13 +263,19 @@ const Dashboard = () => {
                         subscription.checks_limit === -1
                           ? "100%"
                           : `${Math.min(
-                              (subscription.checks_used /
+                              ((stats.usageData?.monthlyUsage || 0) /
                                 subscription.checks_limit) *
                                 100,
                               100
                             )}%`,
                     }}
                   ></div>
+                </div>
+              )}
+              {subscription.isActive && 
+                stats.usageData?.monthlyUsage >= subscription.checks_limit && (
+                <div className="mt-2 text-xs text-red-600 font-medium">
+                  ⚠️ Monthly limit reached. Your plan will reset next month.
                 </div>
               )}
             </div>
