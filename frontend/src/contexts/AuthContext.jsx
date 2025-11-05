@@ -72,13 +72,24 @@ export const AuthProvider = ({ children }) => {
       });
       const { user, session } = response.data;
       
-      if (session) {
+      // Check if email verification is required
+      const requiresVerification = !session || !user.email_confirmed_at;
+      
+      if (session && user.email_confirmed_at) {
+        // Email is already verified, log them in
         setAuthToken(session.access_token);
         setUser(user);
         setIsAuthenticated(true);
+        return { success: true, user, requiresVerification: false };
+      } else {
+        // Email verification required
+        return { 
+          success: true, 
+          user, 
+          requiresVerification: true,
+          message: 'Please check your email to verify your account'
+        };
       }
-      
-      return { success: true, user };
     } catch (error) {
       console.error('Signup failed:', error);
       return { 

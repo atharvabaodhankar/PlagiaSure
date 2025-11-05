@@ -39,6 +39,8 @@ export const authAPI = {
   login: (data) => api.post('/api/auth/login', data),
   logout: () => api.post('/api/auth/logout'),
   getUser: () => api.get('/api/auth/user'),
+  resendVerification: (email) => api.post('/api/auth/resend-verification', { email }),
+  checkVerification: (email) => api.post('/api/auth/check-verification', { email }),
 };
 
 // Assignments API

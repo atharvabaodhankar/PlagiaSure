@@ -20,7 +20,8 @@ router.post('/signup', async (req, res) => {
         data: {
           school_name: schoolName,
           role: role
-        }
+        },
+        emailRedirectTo: `${process.env.FRONTEND_URL || 'http://localhost:5174'}/auth/callback`
       }
     });
 
@@ -161,6 +162,73 @@ router.post('/logout', async (req, res) => {
 
   } catch (error) {
     console.error('Logout error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Resend verification email endpoint
+router.post('/resend-verification', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: `${process.env.FRONTEND_URL || 'http://localhost:5174'}/auth/callback`
+      }
+    });
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.json({ message: 'Verification email sent successfully' });
+
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Check email verification status
+router.post('/check-verification', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Try to sign in to check if email is verified
+    // This is a workaround since Supabase doesn't have a direct way to check verification status
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password: 'dummy-password' // This will fail, but we can check the error
+    });
+
+    // If the error is about invalid credentials, the email exists
+    // If the error is about email not confirmed, we know the status
+    if (error) {
+      if (error.message.includes('Email not confirmed')) {
+        return res.json({ verified: false, message: 'Email not verified yet' });
+      } else if (error.message.includes('Invalid login credentials')) {
+        // Email exists but password is wrong - we can't determine verification status this way
+        return res.json({ verified: null, message: 'Cannot determine verification status' });
+      } else {
+        return res.status(400).json({ error: error.message });
+      }
+    }
+
+    // If we get here, somehow the dummy password worked (very unlikely)
+    res.json({ verified: true, message: 'Email is verified' });
+
+  } catch (error) {
+    console.error('Check verification error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

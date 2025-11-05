@@ -12,6 +12,7 @@ import Layout from "./components/Layout";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
 import Assignments from "./pages/Assignments";
 import Reports from "./pages/Reports";
@@ -89,6 +90,7 @@ function App() {
               }
             />
             <Route path="/test-google" element={<TestGoogleAuth />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
 
             {/* Protected Routes */}
             <Route

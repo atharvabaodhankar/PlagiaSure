@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { authAPI } from '../services/api';
 import { Eye, EyeOff, Loader2, ArrowLeft, Shield, Zap, Users, CheckCircle } from 'lucide-react';
+import EmailVerificationModal from '../components/EmailVerificationModal';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +17,8 @@ const Signup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -53,12 +57,39 @@ const Signup = () => {
     );
     
     if (result.success) {
-      navigate('/dashboard');
+      // Check if email verification is required
+      if (result.requiresVerification) {
+        setRegisteredEmail(formData.email);
+        setShowEmailVerification(true);
+      } else {
+        navigate('/dashboard');
+      }
     } else {
       setError(result.error);
     }
     
     setLoading(false);
+  };
+
+  const handleEmailVerificationComplete = () => {
+    setShowEmailVerification(false);
+    navigate('/dashboard');
+  };
+
+  const handleResendVerificationEmail = async () => {
+    try {
+      await authAPI.resendVerification(registeredEmail);
+      console.log('Verification email resent to:', registeredEmail);
+    } catch (error) {
+      console.error('Failed to resend verification email:', error);
+      throw error;
+    }
+  };
+
+  const handleCloseEmailVerification = () => {
+    setShowEmailVerification(false);
+    // Optionally navigate to login or stay on signup
+    navigate('/login');
   };
 
 
@@ -307,6 +338,15 @@ const Signup = () => {
           </div>
         </div>
       </div>
+
+      {/* Email Verification Modal */}
+      <EmailVerificationModal
+        isOpen={showEmailVerification}
+        onClose={handleCloseEmailVerification}
+        email={registeredEmail}
+        onVerificationComplete={handleEmailVerificationComplete}
+        onResendEmail={handleResendVerificationEmail}
+      />
     </div>
   );
 };
