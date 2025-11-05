@@ -62,7 +62,7 @@ const PolicyLayout = ({ title, lastUpdated, children }) => {
               <Link to="/refund" className="hover:text-gray-300 transition-colors">
                 Cancellation & Refund
               </Link>
-              <Link to="/contact" className="hover:text-gray-300 transition-colors">
+              <Link to="/#contact" className="hover:text-gray-300 transition-colors">
                 Contact Us
               </Link>
               <Link to="/shipping" className="hover:text-gray-300 transition-colors">

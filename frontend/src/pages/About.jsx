@@ -1,7 +1,10 @@
-import React from 'react';
-import { Shield, Zap, Users, Award, Target, Heart, CheckCircle, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Shield, Zap, Users, Award, Target, Heart, CheckCircle, ArrowRight, ArrowLeft, Menu, X } from 'lucide-react';
 
 const About = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
   const stats = [
     { number: '10,000+', label: 'Documents Analyzed' },
     { number: '500+', label: 'Educational Institutions' },
@@ -61,9 +64,92 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="bg-white shadow-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-[#3282B8] to-[#52DE97] rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">🔍</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">PlagiaSure</span>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              <Link to="/#features" className="text-gray-700 hover:text-[#3282B8] transition-colors font-medium">
+                Features
+              </Link>
+              <Link to="/pricing" className="text-gray-700 hover:text-[#3282B8] transition-colors font-medium">
+                Pricing
+              </Link>
+              <Link to="/about" className="text-[#3282B8] font-semibold">
+                About
+              </Link>
+              <Link to="/#contact" className="text-gray-700 hover:text-[#3282B8] transition-colors font-medium">
+                Contact
+              </Link>
+              <Link to="/login" className="text-gray-700 hover:text-[#3282B8] transition-colors font-medium">
+                Login
+              </Link>
+              <Link to="/signup" className="bg-gradient-to-r from-[#3282B8] to-[#52DE97] text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
+                Get Started
+              </Link>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-gray-700 hover:text-[#3282B8] transition-colors"
+              >
+                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              <Link to="/#features" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#3282B8] rounded-md font-medium">
+                Features
+              </Link>
+              <Link to="/pricing" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#3282B8] rounded-md font-medium">
+                Pricing
+              </Link>
+              <Link to="/about" className="block px-3 py-2 text-[#3282B8] bg-blue-50 rounded-md font-semibold">
+                About
+              </Link>
+              <Link to="/#contact" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#3282B8] rounded-md font-medium">
+                Contact
+              </Link>
+              <Link to="/login" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#3282B8] rounded-md font-medium">
+                Login
+              </Link>
+              <div className="px-3 py-2">
+                <Link to="/signup" className="block bg-gradient-to-r from-[#3282B8] to-[#52DE97] text-white px-4 py-2 rounded-full font-semibold text-center hover:opacity-90 transition-all">
+                  Get Started
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </nav>
+
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-[#2D4B7C] via-[#3282B8] to-[#3AB795] text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Back Button */}
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center space-x-2 text-white text-opacity-80 hover:text-opacity-100 transition-colors mb-8"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back</span>
+          </button>
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               About PlagiaSure
@@ -264,7 +350,7 @@ const About = () => {
               <ArrowRight className="w-5 h-5" />
             </a>
             <a
-              href="/contact"
+              href="/#contact"
               className="bg-white text-[#2D4B7C] px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors shadow-lg"
             >
               Contact Our Team

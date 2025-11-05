@@ -77,7 +77,7 @@ const Footer = () => {
                 </li>
                 <li>
                   <Link
-                    to="/contact"
+                    to="/#contact"
                     className="text-white text-opacity-80 hover:text-white transition-colors duration-200 text-sm flex items-center group"
                   >
                     <Mail className="h-3 w-3 mr-2 opacity-60 group-hover:opacity-100" />

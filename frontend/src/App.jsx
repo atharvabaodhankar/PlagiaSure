@@ -21,7 +21,7 @@ import AuthDebug from "./components/AuthDebug";
 // New Pages
 import Pricing from "./pages/Pricing";
 import About from "./pages/About";
-import Contact from "./pages/Contact";
+
 // Payment Pages
 import { PaymentSuccess, PaymentFailure } from "./components/Payment";
 // Policy Pages
@@ -171,7 +171,7 @@ function App() {
             {/* Public Pages */}
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
+
 
             {/* Policy Pages - Public Routes */}
             <Route path="/privacy" element={<PrivacyPolicy />} />

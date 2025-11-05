@@ -25,6 +25,13 @@ import {
 const Landing = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -35,6 +42,44 @@ const Landing = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...contactForm,
+          subject: 'Contact from Landing Page',
+          type: 'general'
+        }),
+      });
+      
+      if (response.ok) {
+        setShowSuccessModal(true);
+        setContactForm({ name: '', email: '', message: '' });
+      } else {
+        alert('Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      alert('Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleContactChange = (e) => {
+    setContactForm({
+      ...contactForm,
+      [e.target.name]: e.target.value
+    });
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -460,35 +505,48 @@ const Landing = () => {
             {/* Quick Contact Form */}
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">Quick Contact</h3>
-              <form className="space-y-4">
+              <form onSubmit={handleContactSubmit} className="space-y-4">
                 <div>
                   <input
                     type="text"
+                    name="name"
+                    value={contactForm.name}
+                    onChange={handleContactChange}
                     placeholder="Your Name"
+                    required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3282B8] focus:border-transparent"
                   />
                 </div>
                 <div>
                   <input
                     type="email"
+                    name="email"
+                    value={contactForm.email}
+                    onChange={handleContactChange}
                     placeholder="Your Email"
+                    required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3282B8] focus:border-transparent"
                   />
                 </div>
                 <div>
                   <textarea
                     rows={4}
+                    name="message"
+                    value={contactForm.message}
+                    onChange={handleContactChange}
                     placeholder="Your Message"
+                    required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3282B8] focus:border-transparent"
                   />
                 </div>
-                <Link
-                  to="/contact"
-                  className="w-full bg-gradient-to-r from-[#3282B8] to-[#52DE97] text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2"
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-gradient-to-r from-[#3282B8] to-[#52DE97] text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50"
                 >
                   <Send className="w-5 h-5" />
-                  <span>Send Message</span>
-                </Link>
+                  <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>
+                </button>
               </form>
             </div>
           </div>
@@ -558,9 +616,9 @@ const Landing = () => {
                   </a>
                 </li>
                 <li>
-                  <Link to="/contact" className="hover:text-white">
+                  <a href="#contact" className="hover:text-white">
                     Contact
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>
@@ -600,6 +658,29 @@ const Landing = () => {
           </div>
         </div>
       </footer>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 animate-fadeIn">
+            <div className="text-center">
+              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Message Sent!</h3>
+              <p className="text-gray-600 mb-6">
+                Thank you for contacting us. We'll get back to you within 24 hours.
+              </p>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="bg-gradient-to-r from-[#3282B8] to-[#52DE97] text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
