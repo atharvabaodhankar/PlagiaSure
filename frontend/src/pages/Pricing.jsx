@@ -95,7 +95,7 @@ const Pricing = () => {
               className="relative inline-flex h-8 w-16 items-center rounded-full bg-white bg-opacity-30 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
             >
               <span
-                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                className={`inline-block h-6 w-6 transform rounded-full bg-black transition-transform ${
                   billingCycle === 'yearly' ? 'translate-x-9' : 'translate-x-1'
                 }`}
               />
@@ -302,7 +302,7 @@ const Pricing = () => {
             </Link>
             <Link
               to="/contact"
-              className="bg-white bg-opacity-20 text-white px-8 py-4 rounded-xl font-semibold hover:bg-opacity-30 transition-colors border border-white border-opacity-30"
+              className="bg-white text-[#2D4B7C] px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors shadow-lg"
             >
               Contact Sales
             </Link>

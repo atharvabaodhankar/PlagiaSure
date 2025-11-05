@@ -265,7 +265,7 @@ const About = () => {
             </a>
             <a
               href="/contact"
-              className="bg-white bg-opacity-20 text-white px-8 py-4 rounded-xl font-semibold hover:bg-opacity-30 transition-colors border border-white border-opacity-30"
+              className="bg-white text-[#2D4B7C] px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors shadow-lg"
             >
               Contact Our Team
             </a>
