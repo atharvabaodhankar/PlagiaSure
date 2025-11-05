@@ -20,9 +20,10 @@ const Pricing = () => {
         'Watermarked reports',
         'Basic support only'
       ],
-      limitations: ['No export options', 'Limited features'],
+      limitations: ['No integrations', 'No advanced features'],
       popular: false,
-      cta: 'Get Started Free'
+      cta: 'Get Started Free',
+      buttonStyle: 'bg-gray-100 text-gray-800 hover:bg-gray-200'
     },
     basic: {
       name: 'Basic Plan',
@@ -32,14 +33,15 @@ const Pricing = () => {
       features: [
         '50 reports per month',
         'Basic AI detection',
-        'Plagiarism checking',
+        'Advanced checking',
         'Email support',
         'Report history access',
         'PDF export'
       ],
       limitations: ['No batch processing'],
       popular: false,
-      cta: 'Start Basic Plan'
+      cta: 'Start Basic Plan',
+      buttonStyle: 'bg-blue-700 text-white hover:bg-blue-800'
     },
     pro: {
       name: 'Pro Plan',
@@ -58,7 +60,8 @@ const Pricing = () => {
       ],
       limitations: [],
       popular: true,
-      cta: 'Start Pro Plan'
+      cta: 'Start Pro Plan',
+      buttonStyle: 'bg-gradient-to-r from-blue-600 to-green-500 text-white hover:opacity-90'
     }
   };
 
@@ -66,336 +69,356 @@ const Pricing = () => {
     return billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
   };
 
-  const getSavings = (plan) => {
-    if (billingCycle === 'yearly' && plan.monthlyPrice > 0) {
-      const yearlyTotal = plan.monthlyPrice * 12;
-      const savings = yearlyTotal - plan.yearlyPrice;
-      return Math.round((savings / yearlyTotal) * 100);
-    }
-    return 0;
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="min-h-screen bg-white font-sans text-gray-600 antialiased">
       {/* Navigation */}
-      <nav className="bg-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-[#3282B8] to-[#52DE97] rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">🔍</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900">PlagiaSure</span>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-200 transition-colors">
+        <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <Link to="/" className="flex items-center gap-2 text-xl font-bold text-gray-800">
+            <img
+              src="/plagiasure.png"
+              alt="PlagiaSure logo"
+              className="h-8 w-8"
+            />
+            <span>PlagiaSure</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center gap-8">
+            <Link to="/#features" className="text-sm font-medium hover:text-green-500 transition-colors">
+              Features
             </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              <Link to="/#features" className="text-gray-700 hover:text-[#3282B8] transition-colors font-medium">
-                Features
-              </Link>
-              <Link to="/pricing" className="text-[#3282B8] font-semibold">
-                Pricing
-              </Link>
-              <Link to="/about" className="text-gray-700 hover:text-[#3282B8] transition-colors font-medium">
-                About
-              </Link>
-              <Link to="/#contact" className="text-gray-700 hover:text-[#3282B8] transition-colors font-medium">
-                Contact
-              </Link>
-              <Link to="/login" className="text-gray-700 hover:text-[#3282B8] transition-colors font-medium">
-                Login
-              </Link>
-              <Link to="/signup" className="bg-gradient-to-r from-[#3282B8] to-[#52DE97] text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
-                Get Started
-              </Link>
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="text-gray-700 hover:text-[#3282B8] transition-colors"
-              >
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
-            </div>
+            <Link to="/pricing" className="text-sm font-medium text-green-500">
+              Pricing
+            </Link>
+            <Link to="/about" className="text-sm font-medium hover:text-green-500 transition-colors">
+              About
+            </Link>
+            <Link to="/#contact" className="text-sm font-medium hover:text-green-500 transition-colors">
+              Contact
+            </Link>
           </div>
-        </div>
+
+          <div className="hidden lg:flex items-center gap-4">
+            <Link to="/login" className="text-sm font-medium hover:text-green-500 transition-colors">
+              Login
+            </Link>
+            <Link to="/signup" className="bg-gradient-to-r from-blue-600 to-green-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity">
+              Get Started
+            </Link>
+          </div>
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 rounded-md text-gray-800"
+          >
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </nav>
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+          <div className="lg:hidden bg-white border-t border-gray-200 shadow-lg">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <Link to="/#features" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#3282B8] rounded-md font-medium">
+              <Link to="/#features" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-green-500 rounded-md font-medium">
                 Features
               </Link>
-              <Link to="/pricing" className="block px-3 py-2 text-[#3282B8] bg-blue-50 rounded-md font-semibold">
+              <Link to="/pricing" className="block px-3 py-2 text-green-500 bg-green-50 rounded-md font-semibold">
                 Pricing
               </Link>
-              <Link to="/about" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#3282B8] rounded-md font-medium">
+              <Link to="/about" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-green-500 rounded-md font-medium">
                 About
               </Link>
-              <Link to="/#contact" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#3282B8] rounded-md font-medium">
+              <Link to="/#contact" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-green-500 rounded-md font-medium">
                 Contact
               </Link>
-              <Link to="/login" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#3282B8] rounded-md font-medium">
+              <Link to="/login" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-green-500 rounded-md font-medium">
                 Login
               </Link>
               <div className="px-3 py-2">
-                <Link to="/signup" className="block bg-gradient-to-r from-[#3282B8] to-[#52DE97] text-white px-4 py-2 rounded-full font-semibold text-center hover:opacity-90 transition-all">
+                <Link to="/signup" className="block bg-gradient-to-r from-blue-600 to-green-500 text-white px-4 py-2 rounded-lg font-semibold text-center hover:opacity-90 transition-all">
                   Get Started
                 </Link>
               </div>
             </div>
           </div>
         )}
-      </nav>
+      </header>
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#2D4B7C] via-[#3282B8] to-[#3AB795] text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Back Button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center space-x-2 text-white text-opacity-80 hover:text-opacity-100 transition-colors mb-8"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back</span>
-          </button>
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+      <main>
+        {/* Hero Section */}
+        <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-green-500 opacity-10 blur-3xl"></div>
+          <div className="container mx-auto px-6 z-10 relative text-center">
+            <h1 className="font-bold text-5xl md:text-6xl text-gray-800 mb-4">
               Simple, Transparent Pricing
             </h1>
-            <p className="text-xl md:text-2xl text-white text-opacity-90 mb-8 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-10">
               Choose the perfect plan for your needs. Start free, upgrade anytime.
             </p>
-            
+
             {/* Billing Toggle */}
-            <div className="flex items-center justify-center space-x-4 mb-8">
-              <span className={`text-lg ${billingCycle === 'monthly' ? 'text-white font-bold' : 'text-white text-opacity-70'}`}>
+            <div className="flex items-center justify-center gap-4 mb-16">
+              <span className={`font-medium ${billingCycle === 'monthly' ? 'text-gray-800' : 'text-gray-500'}`}>
                 Monthly
               </span>
-              <button
-                onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-                className="relative inline-flex h-8 w-16 items-center rounded-full bg-white bg-opacity-30 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-              >
-                <span
-                  className={`inline-block h-6 w-6 transform rounded-full bg-black transition-transform ${
-                    billingCycle === 'yearly' ? 'translate-x-9' : 'translate-x-1'
-                  }`}
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={billingCycle === 'yearly'}
+                  onChange={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
                 />
-              </button>
-              <span className={`text-lg ${billingCycle === 'yearly' ? 'text-white font-bold' : 'text-white text-opacity-70'}`}>
+                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-green-500 transition-colors"></div>
+                <span className="absolute top-0.5 left-0.5 bg-white border-gray-300 border rounded-full h-5 w-5 transition-all duration-300 peer-checked:translate-x-full"></span>
+              </label>
+              <span className={`font-medium ${billingCycle === 'yearly' ? 'text-gray-800' : 'text-gray-500'}`}>
                 Yearly
               </span>
-              {billingCycle === 'yearly' && (
-                <span className="bg-[#52DE97] text-white px-3 py-1 rounded-full text-sm font-semibold">
-                  Save up to 17%
-                </span>
-              )}
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Pricing Cards */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {Object.entries(plans).map(([key, plan]) => (
-            <div
-              key={key}
-              className={`relative bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 ${
-                plan.popular ? 'ring-4 ring-[#52DE97] ring-opacity-50' : ''
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#52DE97] to-[#3AB795] text-white text-center py-2 font-semibold">
-                  <Star className="inline-block w-4 h-4 mr-1" />
-                  Most Popular
-                </div>
-              )}
+            {/* Pricing Cards */}
+            <div className="grid lg:grid-cols-3 gap-8 items-start">
+              {Object.entries(plans).map(([key, plan]) => (
+                <div
+                  key={key}
+                  className={`bg-white p-8 rounded-2xl border text-left h-full flex flex-col ${
+                    plan.popular 
+                      ? 'border-2 border-green-500 relative' 
+                      : 'border border-gray-200'
+                  }`}
+                >
+                  {plan.popular && (
+                    <div className="absolute top-0 right-8 -translate-y-1/2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">
+                      Most Popular
+                    </div>
+                  )}
 
-              <div className={`p-8 ${plan.popular ? 'pt-16' : ''}`}>
-                {/* Plan Header */}
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                  <p className="text-gray-600 mb-4">{plan.description}</p>
-                  
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold text-gray-900">
+                  <h3 className="text-2xl font-semibold text-gray-800 mb-2">
+                    {plan.name}
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    {plan.description}
+                  </p>
+
+                  <div className="mb-8">
+                    <span className="font-bold text-5xl text-gray-800">
                       ₹{getPrice(plan).toLocaleString('en-IN')}
                     </span>
                     {plan.monthlyPrice > 0 && (
-                      <span className="text-gray-600 ml-2">
+                      <span className="text-gray-500">
                         /{billingCycle === 'monthly' ? 'month' : 'year'}
                       </span>
                     )}
                   </div>
 
-                  {getSavings(plan) > 0 && (
-                    <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold inline-block">
-                      Save {getSavings(plan)}% with yearly billing
-                    </div>
-                  )}
-                </div>
+                  <ul className="space-y-4 mb-8 flex-grow">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-center gap-3">
+                        <Check className="h-5 w-5 text-green-500" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                    {plan.limitations.map((limitation, index) => (
+                      <li key={index} className="flex items-center gap-3 text-gray-400">
+                        <X className="h-5 w-5" />
+                        <span>{limitation}</span>
+                      </li>
+                    ))}
+                  </ul>
 
-                {/* Features */}
-                <div className="space-y-4 mb-8">
-                  {plan.features.map((feature, index) => (
-                    <div key={index} className="flex items-start">
-                      <Check className="w-5 h-5 text-[#52DE97] mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">{feature}</span>
-                    </div>
-                  ))}
-                  
-                  {plan.limitations.map((limitation, index) => (
-                    <div key={index} className="flex items-start opacity-60">
-                      <span className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 text-gray-400">×</span>
-                      <span className="text-gray-500 line-through">{limitation}</span>
-                    </div>
-                  ))}
+                  <Link
+                    to="/signup"
+                    className={`w-full text-center font-medium px-6 py-3 rounded-lg transition-colors inline-flex items-center justify-center gap-2 ${plan.buttonStyle}`}
+                  >
+                    {plan.cta}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-                {/* CTA Button */}
+        {/* Why Choose Section */}
+        <section className="py-20 lg:py-28 bg-gray-50">
+          <div className="container mx-auto px-6">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <h2 className="font-bold text-4xl lg:text-5xl text-gray-800 mb-4">
+                Why Choose PlagiaSure?
+              </h2>
+              <p className="text-lg text-gray-600">
+                Advanced AI technology meets comprehensive plagiarism detection for unmatched accuracy.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-white p-8 rounded-2xl border border-gray-200 text-center">
+                <div className="inline-block p-4 mb-4 rounded-full bg-blue-100 text-blue-600">
+                  <Zap className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Lightning Fast</h3>
+                <p className="text-gray-600">
+                  Get results in seconds with our optimized AI algorithms and cloud infrastructure.
+                </p>
+              </div>
+
+              <div className="bg-white p-8 rounded-2xl border border-gray-200 text-center">
+                <div className="inline-block p-4 mb-4 rounded-full bg-green-100 text-green-600">
+                  <Shield className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">99%+ Accuracy</h3>
+                <p className="text-gray-600">
+                  Industry-leading accuracy with multiple AI models and comprehensive databases.
+                </p>
+              </div>
+
+              <div className="bg-white p-8 rounded-2xl border border-gray-200 text-center">
+                <div className="inline-block p-4 mb-4 rounded-full bg-sky-100 text-sky-600">
+                  <Users className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Trusted by Educators</h3>
+                <p className="text-gray-600">
+                  Join thousands of educators and institutions who trust PlagiaSure for academic integrity.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="py-20 lg:py-28">
+          <div className="container mx-auto px-6">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <h2 className="font-bold text-4xl lg:text-5xl text-gray-800 mb-4">
+                Frequently Asked Questions
+              </h2>
+            </div>
+
+            <div className="max-w-3xl mx-auto space-y-4">
+              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-gray-800">
+                  Can I upgrade or downgrade my plan anytime?
+                </h3>
+                <p className="text-gray-600 mt-2">
+                  Yes, you can change your plan at any time. Upgrades take effect immediately, and downgrades take effect at the next billing cycle.
+                </p>
+              </div>
+
+              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-gray-800">
+                  What file formats do you support?
+                </h3>
+                <p className="text-gray-600 mt-2">
+                  We support PDF, DOCX, DOC, and TXT files. Our system can extract and analyze text from all these formats.
+                </p>
+              </div>
+
+              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-gray-800">
+                  Is my data secure?
+                </h3>
+                <p className="text-gray-600 mt-2">
+                  Absolutely. We use enterprise-grade security, encrypt all data, and never store your documents permanently. Your privacy is our priority.
+                </p>
+              </div>
+
+              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-gray-800">
+                  Do you offer institutional discounts?
+                </h3>
+                <p className="text-gray-600 mt-2">
+                  Yes, we offer special pricing for educational institutions and bulk licenses. Contact our sales team for custom pricing.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 lg:py-28">
+          <div className="container mx-auto px-6">
+            <div className="bg-gradient-to-r from-blue-600 to-green-500 rounded-2xl p-12 lg:p-20 text-center text-white">
+              <h2 className="font-bold text-4xl lg:text-5xl mb-4">
+                Ready to Get Started?
+              </h2>
+              <p className="text-lg opacity-80 max-w-2xl mx-auto mb-8">
+                Join thousands of educators protecting academic integrity with PlagiaSure.
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
                 <Link
                   to="/signup"
-                  className={`w-full py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 flex items-center justify-center space-x-2 ${
-                    plan.popular
-                      ? 'bg-gradient-to-r from-[#52DE97] to-[#3AB795] text-white hover:shadow-lg hover:scale-105'
-                      : key === 'free'
-                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      : 'bg-[#3282B8] text-white hover:bg-[#2D4B7C]'
-                  }`}
+                  className="bg-white text-green-500 font-medium px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors inline-flex items-center gap-2"
                 >
-                  <span>{plan.cta}</span>
-                  <ArrowRight className="w-4 h-4" />
+                  Start Free Trial
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+                <Link
+                  to="/#contact"
+                  className="bg-white/20 text-white font-medium px-8 py-3 rounded-lg hover:bg-white/30 transition-colors"
+                >
+                  Contact Sales
                 </Link>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Features Comparison */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Why Choose PlagiaSure?
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Advanced AI technology meets comprehensive plagiarism detection for unmatched accuracy.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center p-8 bg-white rounded-2xl shadow-lg">
-            <div className="bg-gradient-to-r from-[#3282B8] to-[#52DE97] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Zap className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Lightning Fast</h3>
-            <p className="text-gray-600">
-              Get results in seconds with our optimized AI algorithms and cloud infrastructure.
-            </p>
           </div>
+        </section>
+      </main>
 
-          <div className="text-center p-8 bg-white rounded-2xl shadow-lg">
-            <div className="bg-gradient-to-r from-[#3282B8] to-[#52DE97] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Shield className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">99%+ Accuracy</h3>
-            <p className="text-gray-600">
-              Industry-leading accuracy with multiple AI models and comprehensive databases.
-            </p>
-          </div>
-
-          <div className="text-center p-8 bg-white rounded-2xl shadow-lg">
-            <div className="bg-gradient-to-r from-[#3282B8] to-[#52DE97] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Users className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Trusted by Educators</h3>
-            <p className="text-gray-600">
-              Join thousands of educators and institutions who trust PlagiaSure for academic integrity.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* FAQ Section */}
-      <div className="bg-gray-50 py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Frequently Asked Questions
-            </h2>
-          </div>
-
-          <div className="space-y-8">
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Can I upgrade or downgrade my plan anytime?
-              </h3>
-              <p className="text-gray-600">
-                Yes, you can change your plan at any time. Upgrades take effect immediately, and downgrades take effect at the next billing cycle.
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200">
+        <div className="container mx-auto px-6 py-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div>
+              <Link to="/" className="flex items-center gap-2 text-xl font-bold text-gray-800 mb-4">
+                <img
+                  src="/plagiasure.png"
+                  alt="PlagiaSure logo"
+                  className="h-8 w-8"
+                />
+                <span>PlagiaSure</span>
+              </Link>
+              <p className="text-sm text-gray-500">
+                Advanced AI and Plagiarism detection for academic institutions.
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                What file formats do you support?
-              </h3>
-              <p className="text-gray-600">
-                We support PDF, DOCX, DOC, and TXT files. Our system can extract and analyze text from all these formats.
-              </p>
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-4">Product</h4>
+              <ul className="space-y-2">
+                <li><Link to="/#features" className="text-sm hover:text-green-500 transition-colors">Features</Link></li>
+                <li><Link to="/pricing" className="text-sm hover:text-green-500 transition-colors">Pricing</Link></li>
+                <li><a href="#" className="text-sm hover:text-green-500 transition-colors">Integrations</a></li>
+                <li><a href="#" className="text-sm hover:text-green-500 transition-colors">API</a></li>
+              </ul>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Is my data secure?
-              </h3>
-              <p className="text-gray-600">
-                Absolutely. We use enterprise-grade security, encrypt all data, and never store your documents permanently. Your privacy is our priority.
-              </p>
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-4">Company</h4>
+              <ul className="space-y-2">
+                <li><Link to="/about" className="text-sm hover:text-green-500 transition-colors">About Us</Link></li>
+                <li><a href="#" className="text-sm hover:text-green-500 transition-colors">Careers</a></li>
+                <li><a href="#" className="text-sm hover:text-green-500 transition-colors">Blog</a></li>
+                <li><Link to="/#contact" className="text-sm hover:text-green-500 transition-colors">Contact Us</Link></li>
+              </ul>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Do you offer institutional discounts?
-              </h3>
-              <p className="text-gray-600">
-                Yes, we offer special pricing for educational institutions and bulk licenses. Contact our sales team for custom pricing.
-              </p>
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-4">Legal</h4>
+              <ul className="space-y-2">
+                <li><Link to="/terms" className="text-sm hover:text-green-500 transition-colors">Terms of Service</Link></li>
+                <li><Link to="/privacy" className="text-sm hover:text-green-500 transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/refund" className="text-sm hover:text-green-500 transition-colors">Refund Policy</Link></li>
+              </ul>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* CTA Section */}
-      <div className="bg-gradient-to-r from-[#2D4B7C] via-[#3282B8] to-[#3AB795] py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Get Started?
-          </h2>
-          <p className="text-xl text-white text-opacity-90 mb-8">
-            Join thousands of educators protecting academic integrity with PlagiaSure.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/signup"
-              className="bg-[#52DE97] text-white px-8 py-4 rounded-xl font-semibold hover:bg-[#3AB795] transition-colors flex items-center justify-center space-x-2"
-            >
-              <span>Start Free Trial</span>
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link
-              to="/#contact"
-              className="bg-white text-[#2D4B7C] px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors shadow-lg"
-            >
-              Contact Sales
-            </Link>
+          <div className="mt-12 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
+            <p>© 2025 PlagiaSure. All rights reserved.</p>
           </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 };
