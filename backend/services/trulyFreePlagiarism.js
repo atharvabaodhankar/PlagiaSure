@@ -72,7 +72,12 @@ const checkWithDuckDuckGoScraping = async (text) => {
         });
 
         if (response.data.AbstractText && response.data.AbstractText.includes(searchQuery.substring(0, 30))) {
-          const score = 0.7;
+          // Calculate score based on match quality
+          const matchLength = searchQuery.substring(0, 30).length;
+          const abstractLength = response.data.AbstractText.length;
+          const matchRatio = matchLength / Math.max(abstractLength, 100);
+          const score = Math.min(0.85, 0.4 + (matchRatio * 0.5));
+          
           maxScore = Math.max(maxScore, score);
           
           highlights.push({
@@ -279,7 +284,8 @@ const checkWithStackOverflowAPI = async (text) => {
         });
 
         if (response.data.items && response.data.items.length > 0) {
-          const score = Math.min(0.7, response.data.items.length * 0.2);
+          // Dynamic scoring: 0.12 per item found, up to 6 items
+          const score = Math.min(0.72, response.data.items.length * 0.12);
           maxScore = Math.max(maxScore, score);
 
           response.data.items.forEach(item => {

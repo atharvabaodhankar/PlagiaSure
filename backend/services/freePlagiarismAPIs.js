@@ -443,10 +443,19 @@ const checkWithSemanticScholar = async (text) => {
         if (response.data.data && response.data.data.length > 0) {
           const papers = response.data.data;
           
-          // Conservative scoring to avoid false positives
-          const baseScore = Math.min(0.7, papers.length * 0.2);
-          const citationBonus = papers.some(p => p.citationCount > 50) ? 0.1 : 0;
-          const score = Math.min(0.8, baseScore + citationBonus);
+          // Dynamic scoring based on number and quality of matches
+          // Base score: 0.15 per paper found, up to 5 papers
+          const baseScore = Math.min(0.75, papers.length * 0.15);
+          
+          // Citation bonus: highly cited papers indicate stronger match
+          const highCitationCount = papers.filter(p => p.citationCount > 100).length;
+          const citationBonus = Math.min(0.15, highCitationCount * 0.05);
+          
+          // Recency bonus: recent papers might indicate current plagiarism
+          const recentPapers = papers.filter(p => p.year && p.year >= new Date().getFullYear() - 2).length;
+          const recencyBonus = Math.min(0.10, recentPapers * 0.03);
+          
+          const score = Math.min(0.95, baseScore + citationBonus + recencyBonus);
           
           maxScore = Math.max(maxScore, score);
 

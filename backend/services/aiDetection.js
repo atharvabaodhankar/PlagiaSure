@@ -246,7 +246,7 @@ const getGeminiComprehensiveAnalysis = async (text) => {
       );
 
       try {
-        const model = client.getGenerativeModel({ model: "models/gemini-pro" });
+        const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
         const response = await model.generateContent([`You are an expert AI and plagiarism detection system. Analyze the text and return ONLY a valid JSON response.
 
 CRITICAL: Your response must be ONLY valid JSON, no explanations, no markdown, no extra text.
