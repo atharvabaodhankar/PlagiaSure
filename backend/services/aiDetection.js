@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { InferenceClient } from "@huggingface/inference";
 import { splitIntoSentences } from "../utils/textExtractor.js";
+import axios from "axios";
 
 let genAI = null;
 let hfClient = null;
@@ -45,8 +46,9 @@ export const detectAIContent = async (text) => {
     console.log("🚀 Starting comprehensive AI and plagiarism detection...");
 
     // Run all detection methods in parallel
-    const [hfAIProbability, geminiAnalysis] = await Promise.allSettled([
+    const [hfAIProbability, gpt5Probability, geminiAnalysis] = await Promise.allSettled([
       getHuggingFaceAIProbability(text),
+      getGPT5NanoAIProbability(text),
       getGeminiComprehensiveAnalysis(text),
     ]);
 
@@ -59,10 +61,11 @@ export const detectAIContent = async (text) => {
     };
 
     // Process Hugging Face results
+    let hfProb = 0;
     if (hfAIProbability.status === "fulfilled") {
-      probability = hfAIProbability.value;
+      hfProb = hfAIProbability.value;
       console.log(
-        `🤖 Hugging Face AI probability: ${(probability * 100).toFixed(1)}%`
+        `🤖 Hugging Face AI probability: ${(hfProb * 100).toFixed(1)}%`
       );
     } else {
       console.error(
@@ -71,16 +74,48 @@ export const detectAIContent = async (text) => {
       );
     }
 
+    // Process GPT-5-nano results
+    let gpt5Prob = 0;
+    if (gpt5Probability.status === "fulfilled") {
+      gpt5Prob = gpt5Probability.value;
+      console.log(
+        `🤖 GPT-5-nano AI probability: ${(gpt5Prob * 100).toFixed(1)}%`
+      );
+    } else {
+      console.error(
+        "GPT-5-nano AI detection failed:",
+        gpt5Probability.reason
+      );
+    }
+
     // Process Gemini comprehensive analysis
+    let geminiProb = 0;
     if (geminiAnalysis.status === "fulfilled") {
       const geminiResult = geminiAnalysis.value;
+      geminiProb = geminiResult.aiProbability || 0;
 
-      // Combine AI probabilities (weighted average: HF 60%, Gemini 40%)
-      if (geminiResult.aiProbability !== undefined) {
-        probability =
-          probability > 0
-            ? probability * 0.6 + geminiResult.aiProbability * 0.4
-            : geminiResult.aiProbability;
+      // Combine AI probabilities with weighted average
+      // HF: 30%, GPT-5-nano: 30%, Gemini: 40%
+      const weights = [];
+      const probs = [];
+      
+      if (hfProb > 0) {
+        weights.push(0.3);
+        probs.push(hfProb);
+      }
+      if (gpt5Prob > 0) {
+        weights.push(0.3);
+        probs.push(gpt5Prob);
+      }
+      if (geminiProb > 0) {
+        weights.push(0.4);
+        probs.push(geminiProb);
+      }
+
+      // Calculate weighted average
+      if (probs.length > 0) {
+        const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+        probability = probs.reduce((sum, p, i) => sum + (p * weights[i]), 0) / totalWeight;
       }
 
       highlight = geminiResult.aiHighlights || [];
@@ -213,6 +248,94 @@ const getHuggingFaceAIProbability = async (text) => {
     }
   } catch (error) {
     console.error("Hugging Face AI detection error:", error);
+    return 0;
+  }
+};
+
+// Get AI probability using API.market GPT-5-nano
+const getGPT5NanoAIProbability = async (text) => {
+  try {
+    if (!process.env.API_MARKET_KEY || process.env.API_MARKET_KEY === 'your_api_market_key_here') {
+      console.log("⚠️ API.market key not configured");
+      return 0;
+    }
+
+    console.log("🤖 Using API.market GPT-5-nano for AI detection...");
+
+    // Truncate text to reasonable length (GPT models can handle more, but let's be efficient)
+    const truncatedText = text.length > 3000 ? text.substring(0, 3000) : text;
+    
+    console.log(`📏 Text length: ${text.length} chars, using: ${truncatedText.length} chars for GPT-5-nano analysis`);
+
+    const endpoint = process.env.API_MARKET_ENDPOINT || 'https://prod.api.market/api/v1/swift-api/gpt-5-nano/chat/completions';
+    
+    const response = await axios.post(
+      endpoint,
+      {
+        model: 'gpt-5-nano',
+        stream: false,
+        messages: [
+          {
+            role: 'user',
+            content: `You are an AI content detector. Analyze the following text and determine if it was likely written by AI or a human. Respond with ONLY a JSON object containing: {"ai_probability": <number between 0 and 1>, "reasoning": "<brief explanation>"}\n\nText to analyze:\n${truncatedText}`
+          }
+        ]
+      },
+      {
+        headers: {
+          'accept': 'application/json',
+          'x-api-market-key': process.env.API_MARKET_KEY,
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000
+      }
+    );
+
+    if (response.data && response.data.choices && response.data.choices[0]) {
+      const content = response.data.choices[0].message.content;
+      
+      try {
+        // Try to parse JSON response
+        const result = JSON.parse(content);
+        const aiProbability = result.ai_probability || 0;
+        
+        console.log(`✅ GPT-5-nano detected AI probability: ${(aiProbability * 100).toFixed(1)}%`);
+        if (result.reasoning) {
+          console.log(`   Reasoning: ${result.reasoning}`);
+        }
+        
+        return aiProbability;
+      } catch (parseError) {
+        // If JSON parsing fails, try to extract probability from text
+        console.log("⚠️ GPT-5-nano response not in JSON format, attempting text extraction");
+        
+        // Look for percentage or probability in the response
+        const percentMatch = content.match(/(\d+)%/);
+        const probMatch = content.match(/probability[:\s]+(\d+\.?\d*)/i);
+        
+        if (percentMatch) {
+          const probability = parseInt(percentMatch[1]) / 100;
+          console.log(`✅ GPT-5-nano extracted probability: ${(probability * 100).toFixed(1)}%`);
+          return probability;
+        } else if (probMatch) {
+          const probability = parseFloat(probMatch[1]);
+          console.log(`✅ GPT-5-nano extracted probability: ${(probability * 100).toFixed(1)}%`);
+          return probability > 1 ? probability / 100 : probability;
+        }
+        
+        console.log("⚠️ Could not extract probability from GPT-5-nano response");
+        return 0;
+      }
+    }
+
+    console.log("⚠️ GPT-5-nano returned unexpected response format");
+    return 0;
+  } catch (error) {
+    if (error.response) {
+      console.error("❌ API.market API error:", error.response.status, error.response.data);
+    } else {
+      console.error("❌ GPT-5-nano AI detection error:", error.message);
+    }
     return 0;
   }
 };
