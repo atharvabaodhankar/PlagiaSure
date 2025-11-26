@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 // Force rebuild to fix Upload import issue
 import { reportsAPI, assignmentsAPI } from '../services/api';
 import { 
@@ -21,9 +21,11 @@ import EnhancedPlagiarismResults from '../components/EnhancedPlagiarismResults';
 import CitationHelper from '../components/CitationHelper';
 import ReportExporter from '../components/ReportExporter';
 import QuickActions from '../components/QuickActions';
+import AnalysisProgress from '../components/AnalysisProgress';
 
 const Reports = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [assignments, setAssignments] = useState([]);
   const [reports, setReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
@@ -33,6 +35,8 @@ const Reports = () => {
   const [rechecking, setRechecking] = useState(false);
   const [showCitationHelper, setShowCitationHelper] = useState(null);
   const [ignoredMatches, setIgnoredMatches] = useState(new Set());
+  const [showProgress, setShowProgress] = useState(false);
+  const [currentReportId, setCurrentReportId] = useState(null);
 
   useEffect(() => {
     if (id) {
@@ -62,13 +66,37 @@ const Reports = () => {
   const generateReport = async (assignmentId) => {
     try {
       setGenerating(prev => ({ ...prev, [assignmentId]: true }));
-      await reportsAPI.generate(assignmentId);
-      await loadData(); // Reload data after generation
+      const response = await reportsAPI.generate(assignmentId);
+      
+      // Show progress modal
+      if (response.data.reportId) {
+        setCurrentReportId(response.data.reportId);
+        setShowProgress(true);
+      }
     } catch (error) {
       console.error('Failed to generate report:', error);
-    } finally {
+      setError(error.response?.data?.error || 'Failed to generate report');
       setGenerating(prev => ({ ...prev, [assignmentId]: false }));
     }
+  };
+
+  const handleProgressComplete = (data) => {
+    console.log('Analysis complete:', data);
+    setShowProgress(false);
+    setGenerating({});
+    
+    // Reload data and navigate to the report
+    loadData();
+    if (currentReportId) {
+      navigate(`/reports/${currentReportId}`);
+    }
+  };
+
+  const handleProgressError = (error) => {
+    console.error('Analysis error:', error);
+    setShowProgress(false);
+    setGenerating({});
+    setError(error.message || 'Analysis failed');
   };
 
   const loadSingleReport = async (reportId) => {
@@ -693,6 +721,19 @@ const Reports = () => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Progress Modal */}
+      {showProgress && currentReportId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="max-w-2xl w-full">
+            <AnalysisProgress
+              reportId={currentReportId}
+              onComplete={handleProgressComplete}
+              onError={handleProgressError}
+            />
           </div>
         </div>
       )}

@@ -4,8 +4,28 @@ import { authenticateUser, checkSubscription, incrementUsage, checkUsageLimit, i
 import { detectAIContent } from '../services/aiDetection.js';
 import { detectPlagiarism } from '../services/plagiarismDetection.js';
 import { incrementUsageCount } from '../services/usageService.js';
+import progressTracker from '../services/progressTracker.js';
 
 const router = express.Router();
+
+// SSE endpoint for progress updates
+router.get('/progress/:reportId', authenticateUser, (req, res) => {
+  const { reportId } = req.params;
+  
+  // Set headers for SSE
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no'); // Disable buffering for nginx
+  
+  // Add client to progress tracker
+  progressTracker.addClient(reportId, res);
+  
+  // Handle client disconnect
+  req.on('close', () => {
+    progressTracker.removeClient(reportId, res);
+  });
+});
 
 // Generate report endpoint with usage restrictions
 router.post('/generate', authenticateUser, checkUsageLimit, async (req, res) => {
@@ -209,11 +229,47 @@ router.get('/', authenticateUser, async (req, res) => {
 async function processAnalysis(reportId, text, userId) {
   try {
     console.log(`Starting analysis for report ${reportId}`);
+    
+    // Update progress: Starting
+    progressTracker.updateProgress(reportId, {
+      stage: 'starting',
+      progress: 5,
+      message: 'Initializing analysis engines...'
+    });
+
+    // Update progress: Text extraction complete
+    progressTracker.updateProgress(reportId, {
+      stage: 'text_extracted',
+      progress: 10,
+      message: 'Text extracted successfully',
+      textLength: text.length
+    });
+
+    // Update progress: Starting AI detection
+    progressTracker.updateProgress(reportId, {
+      stage: 'ai_detection',
+      progress: 20,
+      message: 'Running AI content detection...'
+    });
 
     // Run AI detection and plagiarism detection in parallel
     const [aiResult, plagiarismResult] = await Promise.allSettled([
-      detectAIContent(text),
-      detectPlagiarism(text)
+      detectAIContent(text, (progress) => {
+        // AI detection progress callback
+        progressTracker.updateProgress(reportId, {
+          stage: 'ai_detection',
+          progress: 20 + (progress * 0.3), // 20-50%
+          message: `AI detection: ${Math.round(progress)}% complete`
+        });
+      }),
+      detectPlagiarism(text, (progress) => {
+        // Plagiarism detection progress callback
+        progressTracker.updateProgress(reportId, {
+          stage: 'plagiarism_detection',
+          progress: 50 + (progress * 0.4), // 50-90%
+          message: `Plagiarism detection: ${Math.round(progress)}% complete`
+        });
+      })
     ]);
 
     let aiProbability = 0;
@@ -295,6 +351,13 @@ async function processAnalysis(reportId, text, userId) {
     
     console.log(`⚖️ Verdict: ${verdict}`);
 
+    // Update progress: Saving results
+    progressTracker.updateProgress(reportId, {
+      stage: 'saving',
+      progress: 95,
+      message: 'Saving analysis results...'
+    });
+
     // Update report with results
     const { error: updateError } = await supabase
       .from('reports')
@@ -320,6 +383,9 @@ async function processAnalysis(reportId, text, userId) {
           error_message: 'Failed to save analysis results'
         })
         .eq('id', reportId);
+      
+      // Update progress: Failed
+      progressTracker.fail(reportId, new Error('Failed to save analysis results'));
     } else {
       console.log(`Analysis completed for report ${reportId}`);
       
@@ -332,6 +398,13 @@ async function processAnalysis(reportId, text, userId) {
           console.error(`Failed to increment usage count for user ${userId}`);
         }
       }
+      
+      // Update progress: Complete
+      progressTracker.complete(reportId, {
+        aiProbability,
+        plagiarismScore,
+        verdict
+      });
     }
 
   } catch (error) {
@@ -345,6 +418,9 @@ async function processAnalysis(reportId, text, userId) {
         error_message: error.message || 'Analysis processing failed'
       })
       .eq('id', reportId);
+    
+    // Update progress: Failed
+    progressTracker.fail(reportId, error);
   }
 }
 
