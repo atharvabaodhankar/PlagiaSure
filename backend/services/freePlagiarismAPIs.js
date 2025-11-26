@@ -19,7 +19,7 @@ export const detectPlagiarismWithFreeAPIs = async (text) => {
     let allHighlights = [];
     let sources = [];
 
-    results.forEach((result, index) => {
+    results.forEach((result) => {
       if (result.status === "fulfilled" && result.value) {
         maxScore = Math.max(maxScore, result.value.score || 0);
         if (result.value.highlight) {
@@ -33,9 +33,33 @@ export const detectPlagiarismWithFreeAPIs = async (text) => {
 
     // Remove duplicates and sort by score
     const uniqueHighlights = removeDuplicateHighlights(allHighlights);
+    
+    // Calculate final score based on actual matches found
+    // Instead of just using maxScore, calculate based on match quality and quantity
+    let finalScore = 0;
+    
+    if (uniqueHighlights.length > 0) {
+      // Average score of top matches (weighted by their individual scores)
+      const topMatches = uniqueHighlights.slice(0, 10);
+      const avgMatchScore = topMatches.reduce((sum, h) => sum + (h.score || 0.5), 0) / topMatches.length;
+      
+      // Base score from average match quality
+      const baseScore = avgMatchScore * 0.7; // 70% weight on match quality
+      
+      // Quantity bonus: more matches = higher confidence
+      const quantityBonus = Math.min(0.25, uniqueHighlights.length * 0.02); // Up to 25% bonus
+      
+      // Source diversity bonus: more sources = more reliable
+      const uniqueSources = [...new Set(sources)].length;
+      const diversityBonus = Math.min(0.15, uniqueSources * 0.03); // Up to 15% bonus
+      
+      finalScore = Math.min(0.95, baseScore + quantityBonus + diversityBonus);
+    } else {
+      finalScore = maxScore; // Fallback to maxScore if no highlights
+    }
 
     return {
-      score: maxScore,
+      score: finalScore,
       highlight: uniqueHighlights.slice(0, 15),
       sources: [...new Set(sources)],
       method: "Multi-API Free Detection",
@@ -185,9 +209,10 @@ const checkWithCrossRef = async (text) => {
           response.data.message.items &&
           response.data.message.items.length > 0
         ) {
+          // Dynamic scoring: 0.18 per item found, up to 4 items
           const score = Math.min(
-            0.7,
-            response.data.message.items.length * 0.15
+            0.72,
+            response.data.message.items.length * 0.18
           );
           maxScore = Math.max(maxScore, score);
 
